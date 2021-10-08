@@ -1,0 +1,124 @@
+---
+title: "p8105_hw2_bpg2118"
+author: "Benjamin Goebel"
+date: "10/7/2021"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(here)
+```
+
+#### **Problem 1**  
+Let's do the following:
+
+*   Read in the excel file for the Mr. Trash Wheel data set 
+*   Clean the variables names 
+*   Remove any rows that do not have a dumpster number
+*   Remove any empty columns that R reads in as "x#"
+*   Round the number of sports balls to the nearest integer
+
+```{r message=FALSE}
+# Read and Clean the Mr. Trash Wheel Data
+mr_trash_wheel <- 
+  readxl::read_xlsx(path = here("hw2_data",
+                                "Trash-Wheel-Collection-Totals-8-6-19.xlsx"),
+                    sheet = "Mr. Trash Wheel") %>%
+  janitor::clean_names() %>%
+  filter(!is.na(dumpster)) %>%
+  select(-starts_with("x")) %>%
+  mutate(sports_balls = round(sports_balls, digits = 0))
+```
+
+A few points about this data set:  
+
+*   There are `r nrow(mr_trash_wheel)` rows in the data set and 
+there are `r ncol(mr_trash_wheel)` columns or variables.
+*   The mean number of plastic bottles per dumpster is 
+`r round(mean(pull(mr_trash_wheel, plastic_bottles)), 2)`.
+*   The median number of glass bottles was 
+`r median(pull(mr_trash_wheel, glass_bottles))`.
+*   The maximum weight of a single dumpster was 
+`r max(pull(mr_trash_wheel, weight_tons))` tons.
+*   The minimum weight of a single dumpster was
+`r min(pull(mr_trash_wheel, weight_tons))` tons.
+*   The median number of sports balls in a dumpster in 2019 was
+`r median(pull(filter(mr_trash_wheel, year == 2019), sports_balls))`.
+
+Next, let's do the following:
+
+*   Read in the precipitation data for 2018 and 2019.  
+*   Clean variable names.
+*   Filter any row without precipitation data.  
+
+Additionally, when reading in this data, we can skip the first row, as it does 
+not contain column names nor actual data.
+```{r}
+# Read and Clean the 2018 and 2019 Precipitation Data
+eighteen_precip <- 
+  readxl::read_xlsx(path = here("hw2_data",
+                                "Trash-Wheel-Collection-Totals-8-6-19.xlsx"),
+                    sheet = "2018 Precipitation",
+                    skip = 1) %>%
+  janitor::clean_names() %>%
+  filter(!is.na(month) & !is.na(total))
+nineteen_precip <- 
+  readxl::read_xlsx(path = here("hw2_data",
+                                "Trash-Wheel-Collection-Totals-8-6-19.xlsx"),
+                    sheet = "2019 Precipitation",
+                    skip = 1) %>%
+  janitor::clean_names() %>%
+  filter(!is.na(month) & !is.na(total))
+```
+
+Further, because precipitation is measured in inches, we can indicate this
+unit in the total variable name.
+```{r}
+eighteen_precip <- rename(eighteen_precip, total_precip_inches = total)
+nineteen_precip <- rename(nineteen_precip, total_precip_inches = total)
+```
+
+Next, let's add a year variable and make it the leftmost column for the 2018 
+and 2019 precipitation data frames.
+```{r}
+# Add year variable and position as the leftmost column
+eighteen_precip <- eighteen_precip %>%
+  mutate(year = 2018) %>%
+  relocate(year)
+
+nineteen_precip <- nineteen_precip %>%
+  mutate(year = 2019) %>%
+  relocate(year)
+```
+
+Now, we can combine the precipitation data sets and convert the month variable
+to a character variable.
+```{r}
+eighteen_nineteen_precip <- bind_rows(eighteen_precip, nineteen_precip) %>%
+  mutate(month = month.name[month])
+```
+
+Finally, here are some facts about the precipitation data:  
+
+*   There are `r nrow(eighteen_precip)` rows (one row for each month) and 
+`r ncol(eighteen_precip)` columns in the 2018 precipitation data.
+*   There are `r nrow(nineteen_precip)` rows and 
+`r ncol(nineteen_precip)` columns in the 2019 precipitation data.
+    * Notice that we are missing data for the 2019 precipitation data.
+*   The total precipitation in 2018 was 
+`r sum(pull(eighteen_precip, total_precip_inches))` inches, and 
+the total precipitation in 2019, for the data we have, was 
+`r sum(pull(nineteen_precip, total_precip_inches))` inches.
+*   The month with the minimum precipitation in 2018 was
+`r first(pull(arrange(filter(eighteen_nineteen_precip, year == 2018), 
+              total_precip_inches), month))`, and the month with the maximum
+precipitation in 2018 was
+`r first(pull(arrange(filter(eighteen_nineteen_precip, year == 2018), 
+              desc(total_precip_inches)), month))`.
+*   The month with the minimum precipitation in 2019 was
+`r first(pull(arrange(filter(eighteen_nineteen_precip, year == 2019), 
+              total_precip_inches), month))`, and the month with the maximum
+precipitation in 2019 was
+`r first(pull(arrange(filter(eighteen_nineteen_precip, year == 2019), 
+              desc(total_precip_inches)), month))` for the data we have.
