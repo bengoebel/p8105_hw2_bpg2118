@@ -220,12 +220,14 @@ unemployment <- read_csv(here("hw2_data",
   filter(!is.na(unemployment_pct))
 ```
 The unemployment data contains unemployment percentages over time. There
-are `r nrow(unemployment)` rows and `r ncol(unemployment)` columns. Data is collected from 
-`r min(pull(unemployment, year))` to `r max(pull(unemployment, year))`. Similar 
-to the pols-month data, there is one row observation for every month in this
-time frame. Additionally, this time span is similar to that of the pols-month 
-data except that data collection started one year later for the unemployment 
-data than it did for the pols-month data. The key variable in this data set is unemployment_pct, which is the unemployment percentage on 
+are `r nrow(unemployment)` rows and `r ncol(unemployment)` columns. Data is 
+collected from `r min(pull(unemployment, year))` to 
+`r max(pull(unemployment, year))`. Similar to the pols-month data, there is one 
+row observation for every month in this time frame. Additionally, this time 
+span is similar to that of the pols-month data except that data collection 
+started one year later for the unemployment data than it did for the 
+pols-month data. The key variable in this data set is 
+unemployment_pct, which is the unemployment percentage on 
 the observed date. The median unemployment
 percentage is 
 `r round(median(pull(unemployment, unemployment_pct)), 2)`%.
