@@ -13,11 +13,11 @@ library(here)
 #### **Problem 1**  
 Let's do the following:
 
-*   Read in the excel file for the Mr. Trash Wheel data set 
-*   Clean the variables names 
-*   Remove any rows that do not have a dumpster number
-*   Remove any empty columns that R reads in as "x#"
-*   Round the number of sports balls to the nearest integer
+*   Read in the excel file for the Mr. Trash Wheel data set. 
+*   Clean the variables names. 
+*   Remove any rows that do not have a dumpster number.
+*   Remove any empty columns that R reads in as "x#".
+*   Round the number of sports balls to the nearest integer.
 
 ```{r message=FALSE}
 # Read and Clean the Mr. Trash Wheel Data
@@ -33,15 +33,16 @@ mr_trash_wheel <-
 
 A few points about this data set:  
 
-*   There are `r nrow(mr_trash_wheel)` rows in the data set and 
-there are `r ncol(mr_trash_wheel)` columns or variables.
+*   There are `r nrow(mr_trash_wheel)` rows (one row for each dumpster
+collected) in the data set and 
+there are `r ncol(mr_trash_wheel)` columns.
 *   The mean number of plastic bottles per dumpster is 
 `r round(mean(pull(mr_trash_wheel, plastic_bottles)), 2)`.
-*   The median number of glass bottles was 
+*   The median number of glass bottles is 
 `r median(pull(mr_trash_wheel, glass_bottles))`.
-*   The maximum weight of a single dumpster was 
+*   The maximum weight of a single dumpster is 
 `r max(pull(mr_trash_wheel, weight_tons))` tons.
-*   The minimum weight of a single dumpster was
+*   The minimum weight of a single dumpster is
 `r min(pull(mr_trash_wheel, weight_tons))` tons.
 *   The median number of sports balls in a dumpster in 2019 was
 `r median(pull(filter(mr_trash_wheel, year == 2019), sports_balls))`.
@@ -56,6 +57,7 @@ Additionally, when reading in this data, we can skip the first row, as it does
 not contain column names nor actual data.
 ```{r}
 # Read and Clean the 2018 and 2019 Precipitation Data
+# Skip first row, which does not contain data
 eighteen_precip <- 
   readxl::read_xlsx(path = here("hw2_data",
                                 "Trash-Wheel-Collection-Totals-8-6-19.xlsx"),
@@ -72,8 +74,8 @@ nineteen_precip <-
   filter(!is.na(month), !is.na(total))
 ```
 
-Further, because precipitation is measured in inches, we can indicate this
-unit in the total variable name.
+Further, because precipitation is measured in inches, we can indicate this unit in the total variable name.
+
 ```{r}
 eighteen_precip <- rename(eighteen_precip, total_precip_inches = total)
 nineteen_precip <- rename(nineteen_precip, total_precip_inches = total)
@@ -128,8 +130,9 @@ First, let's do the following for the pols-month data:
 
 *   Read in the pols-month data.
 *   Separate the mon variable into year, month and day variables.
-*   Replace the month number with a month name.
-*   Create a president variable name, taking values gop and dem.
+*   Replace the month number with the month name.
+*   Create a president variable, indicating the president's 
+political affiliation (gop or dem).
 *   Remove prez_dem, prez_gop and the day variables.
 ```{r message=FALSE}
 # Read and clean the pols-month data
@@ -141,13 +144,13 @@ pols_month <- read_csv(here("hw2_data",
          president = ifelse(as.logical(prez_dem), "dem", "gop")) %>%
   select(-prez_dem, -prez_gop, -day)
 ```
-The pols-month data contains data on politicians and their political
-affiliations at the state and federal level. The data set has 
+The pols-month data contains data on politicians and their respective
+political affiliations at the state and federal level. The data set has 
 `r nrow(pols_month)` rows and `r ncol(pols_month)` columns. It contains 
 political data from `r min(pull(pols_month, year))` to 
-`r max(pull(pols_month, year))`. The key variables indicate the number of
-Republicans and Democrats who are governors, representatives and senators. The
-data set also has a key variable for the political affiliation of the
+`r max(pull(pols_month, year))`. There is one row observation for every
+month in this time frame. The key variables indicate the number of
+Republicans and Democrats who are governors, representatives and senators. The data set also has a key variable for the political affiliation of the
 president. In the time frame of this data set, there has been a Republican
 president for `r nrow(filter(pols_month, president == "gop"))` months, and
 there has been a Democrat president for 
@@ -177,15 +180,17 @@ snp <- read_csv(here("hw2_data",
   select(-day)
 ```
 The snp data contains closing price data of the S&P index over time. There
-are `r nrow(snp)` rows and `r ncol(snp)` columns. Data is collect from
-`r min(pull(snp, year))` to `r max(pull(snp, year))`. This time span is similar
-to that of the pols-month data except that data collection started three years
+are `r nrow(snp)` rows and `r ncol(snp)` columns. Data is collected from
+`r min(pull(snp, year))` to `r max(pull(snp, year))`. Similar to the
+pols-month data, there is one row observation for every month in this
+time frame. Additionally, this time span is similar to that of the pols-month 
+data except that data collection started three years
 later for the snp data than it did for the pols-month data. The key variable
 in this data set is close, which is the closing price of the S&P index on the
 observed date. The median closing price of the S&P index in the data set is
 $`r round(median(pull(snp, close)), 2)`.
 
-Third, let's do the following for the unemployment data.
+Third, let's do the following for the unemployment data:
 
 *   Read in the unemployment data.
 *   Pivot the month data from wide to long format (bring all the month columns
@@ -193,10 +198,11 @@ into one column).
 *   Convert the month from three character abbreviation to full month name.
 *   Make the year column name all lowercase.
 *   Convert year from a double to a character.
+*   Remove any rows that do not contain an unemployment percent.
 
 ```{r message =FALSE}
-# Read and clean the unemployment data. The years are encoded as
-# abbreviations. To convert to full names, convert month abbreviations to
+# Read and clean the unemployment data. The months are encoded as
+# abbreviations. To convert to full month names, convert month abbreviations to
 # month numbers. Then, convert month numbers to full month names.
 unemployment <- read_csv(here("hw2_data",
                               "fivethirtyeight_datasets",
@@ -208,16 +214,18 @@ unemployment <- read_csv(here("hw2_data",
   ) %>%
   mutate(month = month.name[match(month, month.abb)]) %>%
   rename(year = Year) %>%
-  mutate(year = as.character(year))
+  mutate(year = as.character(year)) %>%
+  filter(!is.na(unemployment_pct))
 ```
 The unemployment data contains unemployment percentages over time. There
-are `r nrow(unemployment)` rows and `r ncol(unemployment)` columns. Data is collect from 
-`r min(pull(unemployment, year))` to `r max(pull(unemployment, year))`. This 
-time span is similar to that of the pols-month data except that data collection started one year later for the unemployment data than it did for the 
-pols-month data. The key variable in this data set is unemployment_pct, which 
-is the unemployment percentage on the observed date. The median unemployment
+are `r nrow(unemployment)` rows and `r ncol(unemployment)` columns. Data is collected from 
+`r min(pull(unemployment, year))` to `r max(pull(unemployment, year))`. Similar 
+to the pols-month data, there is one row observation for every month in this
+time frame. Additionally, this time span is similar to that of the pols-month 
+data except that data collection started one year later for the unemployment 
+data than it did for the pols-month data. The key variable in this data set is unemployment_pct, which is the unemployment percentage on the observed date. The median unemployment
 percentage is 
-`r round(median(pull(unemployment, unemployment_pct), na.rm = TRUE), 2)`%.
+`r round(median(pull(unemployment, unemployment_pct)), 2)`%.
 
 Fourth, let's join the data together.
 ```{r}
@@ -277,9 +285,10 @@ include the rank column as it is not relevant here.
 # Output table.
 popular_baby_names %>%
   filter(childs_first_name == "Olivia") %>%
+  select(year_of_birth, ethnicity, childs_first_name, count) %>%
   pivot_wider(names_from = "year_of_birth",
               values_from = "count") %>%
-  select(ethnicity, childs_first_name, `2011`:`2016`) %>%
+  select(childs_first_name, ethnicity, `2011`:`2016`) %>%
   knitr::kable(caption = "Popularity of the name Olivia from 2011 to 2016 
                           stratified by ethnicity.")
 ```
@@ -290,6 +299,7 @@ over time. It will have the same columns as the previous table did.
 ```{r}
 # Filter rows and columns.
 # Pivot wide year column.
+# Select columns.
 # Output table.
 popular_baby_names %>%
   filter(gender == "MALE", rank == 1) %>%
@@ -297,28 +307,31 @@ popular_baby_names %>%
   pivot_wider(names_from = "year_of_birth",
               values_from = "childs_first_name") %>%
   select(ethnicity, `2011`:`2016`) %>%
-  knitr::kable(caption = "Most popular among male children from 2011 to 2016.")
+  knitr::kable(caption = "Most popular names among male children from 2011 
+                          to 2016.")
 ```
 
 Finally, for male, white non-hispanic children born in 2016, we will produce a 
-scatter plot visualizing the number of children with a name (y axis) against 
-the rank in popularity of that name (x axis).
+scatter plot visualizing the number of children with a given name (y axis) 
+against the rank in popularity of that name (x axis).
 
 ```{r}
 # Filter to desired population.
 # Create plot.
 # Label axes and title.
+# Center title.
 popular_baby_names %>%
   filter(gender == "MALE", ethnicity == "WHITE NON HISPANIC", 
          year_of_birth == 2016) %>%
   ggplot(aes(x = rank, y = count)) +
     geom_point() +
   labs(
-    title = "Number of Children with a Name as a Function of Rank in Popularity
-             of that Name among Male, White Non-Hispanic Children Born in 2016",
-    y = "Number of Children with a Name",
-    x = "Rank in Popularity of a Name"
-  )
+    title = "Name Count as a Function of Name Rank among Male, White 
+             Non-Hispanic Children Born in 2016",
+    y = "Name Count",
+    x = "Name Rank"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 
