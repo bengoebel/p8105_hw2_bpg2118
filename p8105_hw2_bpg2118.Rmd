@@ -1,7 +1,7 @@
 ---
 title: "p8105_hw2_bpg2118"
 author: "Benjamin Goebel"
-date: "10/7/2021"
+date: "10/9/2021"
 output: github_document
 ---
 
@@ -239,3 +239,86 @@ $`r round(mean(pull(filter(pols_snp_unemployment, president == "dem"), close),
                  na.rm = TRUE), 2)` and the average unemployment percentage has
 been `r round(mean(pull(filter(pols_snp_unemployment, president == "dem"),
                         unemployment_pct), na.rm = TRUE), 2)`%.
+
+#### **Problem 3**
+First, let's do the following to the popular baby names data:
+
+*   Read in the popular baby names data.
+*   Clean the column names.
+*   Recode the ethnicity variable to account for same values that
+are coded differently.
+*   Convert the childs_first_name variable to title case to account for the
+same names with different capitalizations.
+*   Remove duplicate rows.
+
+```{r message=FALSE}
+# Read and clean the popular baby names data
+popular_baby_names <- 
+  read_csv(here("hw2_data", "Popular_Baby_Names.csv")) %>%
+  janitor::clean_names() %>%
+  mutate(ethnicity = recode(ethnicity,
+                            "ASIAN AND PACI" = "ASIAN AND PACIFIC ISLANDER",
+                            "BLACK NON HISP" = "BLACK NON HISPANIC",
+                            "WHITE NON HISP" = "WHITE NON HISPANIC"),
+         childs_first_name = str_to_title(childs_first_name)) %>%
+  distinct()
+
+```
+With our cleaned data, we can proceed. We will now produce a table to
+show the popularity of the name "Olivia" over the years. Each year will be a
+column and each ethnicity will be a row. For this table, all rows have a gender 
+value equal to "FEMALE", so we will not include this column. We will also not
+include the rank column as it is not relevant here.
+
+```{r}
+# Filter rows.
+# Pivot wide year column.
+# Select columns.
+# Output table.
+popular_baby_names %>%
+  filter(childs_first_name == "Olivia") %>%
+  pivot_wider(names_from = "year_of_birth",
+              values_from = "count") %>%
+  select(ethnicity, childs_first_name, `2011`:`2016`) %>%
+  knitr::kable(caption = "Popularity of the name Olivia from 2011 to 2016 
+                          stratified by ethnicity.")
+```
+
+Next, we will produce a table showing the most popular name among male children
+over time. It will have the same columns as the previous table did.
+
+```{r}
+# Filter rows and columns.
+# Pivot wide year column.
+# Output table.
+popular_baby_names %>%
+  filter(gender == "MALE", rank == 1) %>%
+  select(year_of_birth, ethnicity, childs_first_name) %>%
+  pivot_wider(names_from = "year_of_birth",
+              values_from = "childs_first_name") %>%
+  select(ethnicity, `2011`:`2016`) %>%
+  knitr::kable(caption = "Most popular among male children from 2011 to 2016.")
+```
+
+Finally, for male, white non-hispanic children born in 2016, we will produce a 
+scatter plot visualizing the number of children with a name (y axis) against 
+the rank in popularity of that name (x axis).
+
+```{r}
+# Filter to desired population.
+# Create plot.
+# Label axes and title.
+popular_baby_names %>%
+  filter(gender == "MALE", ethnicity == "WHITE NON HISPANIC", 
+         year_of_birth == 2016) %>%
+  ggplot(aes(x = rank, y = count)) +
+    geom_point() +
+  labs(
+    title = "Number of Children with a Name as a Function of Rank in Popularity
+             of that Name among Male, White Non-Hispanic Children Born in 2016",
+    y = "Number of Children with a Name",
+    x = "Rank in Popularity of a Name"
+  )
+```
+
+
