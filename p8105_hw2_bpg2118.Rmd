@@ -74,7 +74,8 @@ nineteen_precip <-
   filter(!is.na(month), !is.na(total))
 ```
 
-Further, because precipitation is measured in inches, we can indicate this unit in the total variable name.
+Further, because precipitation is measured in inches, we 
+can indicate this unit in the total variable name.
 
 ```{r}
 eighteen_precip <- rename(eighteen_precip, total_precip_inches = total)
